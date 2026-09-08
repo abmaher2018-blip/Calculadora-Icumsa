@@ -6,9 +6,13 @@ workflows:
     environment:
       flutter: stable
     scripts:
-      - name: Get Flutter packages
+      - name: Generate Flutter project structure
         script: |
-          flutter packages pub get
+          cp lib/main.dart /tmp/main.dart
+          rm -rf *
+          rm -rf .git
+          flutter create --template=app --org=com.lab.icumsa .
+          cp /tmp/main.dart lib/main.dart
       - name: Build APK
         script: |
           flutter build apk --release
