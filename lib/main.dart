@@ -56,7 +56,7 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
 
       final double calculatedDensity = _getDensityFromBrix(brix);
       
-      // Fórmula oficial ajustada: (Absorbancia * Factor) / (Celda * Brix * Densidad)
+      // Fórmula ICUMSA: (Absorbancia * Factor) / (Celda * Brix * Densidad)
       final double color = (_factorICUMSA * absorbance) / (cellLength * brix * calculatedDensity);
 
       setState(() {
@@ -290,7 +290,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               '• 100,000 (Celda en cm, Brix 0-100)\n'
               '• 1,000,000 (Celda en cm, RDS en fracción 0-1)\n'
               '• 10,000,000 / 100,000,000 (Escalas especiales)',
-              style: TextStyle(color: Colors.black70, fontSize: 13),
+              style: TextStyle(color: Colors.black54, fontSize: 13),
             ),
             const SizedBox(height: 20),
             TextField(
@@ -305,21 +305,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                final double? val = double.tryParse(_factorController.text);
-                if (val != null && val > 0) {
-                  Navigator.pop(context, val);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B365D),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-              ),
-              child: const Text('GUARDAR Y APLICAR', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+                final double? val = double.tryParse(_factor
