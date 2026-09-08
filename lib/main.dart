@@ -1,91 +1,73 @@
+import 'dart01:math';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const ColorIcumsaApp());
+  runApp(const IcumsaApp());
 }
 
-class ColorIcumsaApp extends StatelessWidget {
-  const ColorIcumsaApp({super.key});
+class IcumsaApp extends StatelessWidget {
+  const IcumsaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Calculadora ICUMSA',
       debugShowCheckedModeBanner: false,
-      title: 'Calculadora Color ICUMSA',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1B365D)),
         useMaterial3: true,
       ),
-      home: const CalculadoraColorScreen(),
+      home: const IcumsaCalculator(),
     );
   }
 }
 
-class CalculadoraColorScreen extends StatefulWidget {
-  const CalculadoraColorScreen({super.key});
+class IcumsaCalculator extends StatefulWidget {
+  const IcumsaCalculator({super.key});
 
   @override
-  State<CalculadoraColorScreen> createState() => _CalculadoraColorScreenState();
+  State<IcumsaCalculator> createState() => _IcumsaCalculatorState();
 }
 
-class _CalculadoraColorScreenState extends State<CalculadoraColorScreen> {
-  final TextEditingController _celdaController = TextEditingController(text: '2');
-  final TextEditingController _brixController = TextEditingController();
-  final TextEditingController _absorbanciaController = TextEditingController();
+class _IcumsaCalculatorState extends State<IcumsaCalculator> {
+  final _formKey = GlobalKey<FormState>();
+  final _absorbanceController = TextEditingController();
+  final _cellLengthController = TextEditingController(text: '1.0');
+  final _brixController = TextEditingController();
 
-  double? _resultadoColor;
-  String? _errorMensaje;
+  double? _density;
+  double? _icumsaColor;
 
-  // Base de datos de Densidades según Brix (Equivalente a 'Base de Datos'!A1:B33)
-  final Map<double, double> _baseDatosDensidad = {
-    29.7: 1124.51,
-    29.8: 1124.99,
-    29.9: 1125.46,
-    30.0: 1125.94,
-    30.1: 1126.42,
-    30.2: 1126.90,
-    30.3: 1127.37,
-  };
+  double _getDensityFromBrix(double brix) {
+    return 0.998234 +
+        (0.003855 * brix) +
+        (0.0000155 * pow(brix, 2)) +
+        (0.00000004 * pow(brix, 3));
+  }
 
-  void _calcularColor() {
+  void _calculate() {
+    if (_formKey.currentState!.validate()) {
+      final double absorbance = double.parse(_absorbanceController.text);
+      final double cellLength = double.parse(_cellLengthController.text);
+      final double brix = double.parse(_brixController.text);
+
+      final double calculatedDensity = _getDensityFromBrix(brix);
+      final double color = (100000000 * absorbance) / (cellLength * brix * calculatedDensity);
+
+      setState(() {
+        _density = calculatedDensity;
+        _icumsaColor = color;
+      });
+    }
+  }
+
+  void _reset() {
+    _absorbanceController.clear();
+    _cellLengthController.text = '1.0';
+    _brixController.clear();
     setState(() {
-      _errorMensaje = null;
-      _resultadoColor = null;
-    });
-
-    double? tamanoCelda = double.tryParse(_celdaController.text);
-    double? brix = double.tryParse(_brixController.text);
-    double? absorbancia = double.tryParse(_absorbanciaController.text);
-
-    if (tamanoCelda == null || brix == null || absorbancia == null) {
-      setState(() {
-        _errorMensaje = 'Por favor ingrese valores numéricos válidos.';
-      });
-      return;
-    }
-
-    if (tamanoCelda <= 0 || brix <= 0) {
-      setState(() {
-        _errorMensaje = 'El tamaño de celda y Brix deben ser mayores a 0.';
-      });
-      return;
-    }
-
-    // Búsqueda de densidad (BUSCARV)
-    double? densidad = _baseDatosDensidad[brix];
-
-    if (densidad == null) {
-      setState(() {
-        _errorMensaje = 'El valor de Brix ($brix) no se encuentra en la base de datos.';
-      });
-      return;
-    }
-
-    // Fórmula exacta de Excel: (((100000000 * (Absorbancia / Brix) / Densidad) / TamañoCelda))
-    double color = (100000000 * (absorbancia / brix) / densidad) / tamanoCelda;
-
-    setState(() {
-      _resultadoColor = color;
+      _density = null;
+      _icumsaColor = null;
     });
   }
 
@@ -93,108 +75,134 @@ class _CalculadoraColorScreenState extends State<CalculadoraColorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cálculo de Color ICUMSA', style: TextStyle(color: Colors.white)),
+        title: const Text('Cálculo de Color ICUMSA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF1B365D),
-        centerTitle: true,
+        elevation: 2,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAlignment.stretch,
-          children: [
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _celdaController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(
-                        labelText: 'Tamaño de Celda (cm)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.straighten),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    TextField(
-                      controller: _brixController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(
-                        labelText: 'Brix (°Brix)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.science),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    TextField(
-                      controller: _absorbanciaController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(
-                        labelText: 'Absorbancia (A)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.opacity),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _calcularColor,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1B365D),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: const Text(
-                        'CALCULAR COLOR',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            if (_errorMensaje != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red),
-                ),
-                child: Text(_errorMensaje!, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-              ),
-            if (_resultadoColor != null)
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               Card(
-                color: const Color(0xFFE8EEF5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: Color(0xFF1B365D), width: 1.5),
-                ),
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      const Text(
-                        'COLOR ICUMSA (IU)',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF555555)),
+                      TextFormField(
+                        controller: _absorbanceController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Absorbancia (Ad a 420 nm)',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.waves),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Ingrese la absorbancia';
+                          if (double.tryParse(value) == null) return 'Valor numérico inválido';
+                          return null;
+                        },
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _resultadoColor!.toStringAsFixed(0),
-                        style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF1B365D)),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _cellLengthController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Longitud de celda b (cm)',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.straighten),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Ingrese la longitud de celda';
+                          final val = double.tryParse(value);
+                          if (val == null || val <= 0) return 'Debe ser mayor a 0';
+                          return null;
+                        },
                       ),
-                      Text(
-                        'Valor exacto: ${_resultadoColor!.toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _brixController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Grados Brix (°Brix)',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.science),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Ingrese los Brix';
+                          final val = double.tryParse(value);
+                          if (val == null || val <= 0) return 'Debe ser mayor a 0';
+                          return null;
+                        },
                       ),
                     ],
                   ),
                 ),
               ),
-          ],
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _calculate,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1B365D),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text('CALCULAR', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton.filledTonal(
+                    onPressed: _reset,
+                    icon: const Icon(Icons.refresh),
+                    tooltip: 'Limpiar',
+                  ),
+                ],
+              ),
+              if (_icumsaColor != null) ...[
+                const SizedBox(height: 25),
+                Card(
+                  color: const Color(0xFFE8EEF5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'RESULTADO ICUMSA',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1B365D)),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _icumsaColor!.toStringAsFixed(2),
+                          style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF1B365D)),
+                        ),
+                        const Text('UI (Unidades ICUMSA)', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                        const Divider(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Densidad calculada (ρ):'),
+                            Text(
+                              '${_density!.toStringAsFixed(4)} g/cm³',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
