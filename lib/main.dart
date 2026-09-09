@@ -35,7 +35,7 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
   final _cellLengthController = TextEditingController(text: '1.0');
   final _brixController = TextEditingController();
 
-  // Factor configurable (por defecto 100,000 para celda en cm y Brix en escala 0-100)
+  // Factor configurable (por defecto 100,000 para celda en cm y Brix 0-100)
   double _factorICUMSA = 100000.0;
 
   double? _density;
@@ -228,81 +228,3 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
                         ),
                         const SizedBox(height: 4),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Factor multiplicador actual:'),
-                            Text(
-                              _factorICUMSA.toStringAsFixed(0),
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SettingsScreen extends StatefulWidget {
-  final double currentFactor;
-  const SettingsScreen({super.key, required this.currentFactor});
-
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  late TextEditingController _factorController;
-
-  @override
-  void initState() {
-    super.initState();
-    _factorController = TextEditingController(text: widget.currentFactor.toStringAsFixed(0));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configuración de Factores', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF1B365D),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Factor de la Fórmula ICUMSA',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1B365D)),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Ajuste el factor según la escala utilizada en su laboratorio:\n'
-              '• 100,000 (Celda en cm, Brix 0-100)\n'
-              '• 1,000,000 (Celda en cm, RDS en fracción 0-1)\n'
-              '• 10,000,000 / 100,000,000 (Escalas especiales)',
-              style: TextStyle(color: Colors.black54, fontSize: 13),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _factorController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'Factor Multiplicador',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.calculate),
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                final double? val = double.tryParse(_factor
