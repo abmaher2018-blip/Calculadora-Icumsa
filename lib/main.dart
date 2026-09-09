@@ -76,7 +76,7 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
 
   void _reset() {
     _absorbanceController.clear();
-    _cellLengthController.text = '1.0';
+    _cellLengthController.text = '2';
     _brixController.clear();
     setState(() {
       _densityKgM3 = null;
