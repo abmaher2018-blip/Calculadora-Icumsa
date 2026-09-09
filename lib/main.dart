@@ -35,18 +35,18 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
   final _cellLengthController = TextEditingController(text: '1.0');
   final _brixController = TextEditingController();
 
-  // Factor corregido a 100,000,000
+  // Factor de multiplicación ajustado a 100,000,000
   final double _factorICUMSA = 100000000.0;
 
   double? _densityKgM3;
   double? _icumsaColor;
 
-  // Ajuste preciso a la tabla oficial ICUMSA GS4/3/7-17 (30.0 °Brix = 1,125.94 kg/m³)
+  // Ajuste según la tabla oficial ICUMSA GS4/3/7-17 (30.0 °Brix = 1,125.94 kg/m³)
   double _getDensityInKgM3(double brix) {
     return 998.203 + (3.74913 * brix) + (0.016959 * pow(brix, 2));
   }
 
-  // Formato numérico para densidad (ej. "1,125.94")
+  // Formato numérico con separador de miles para la densidad
   String _formatDensity(double density) {
     final List<String> parts = density.toStringAsFixed(2).split('.');
     final String integerPart = parts[0];
