@@ -35,18 +35,16 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
   final _cellLengthController = TextEditingController(text: '1.0');
   final _brixController = TextEditingController();
 
-  // Factor de multiplicación ajustado a 100,000,000
   final double _factorICUMSA = 100000000.0;
 
   double? _densityKgM3;
   double? _icumsaColor;
 
-  // Ajuste según la tabla oficial ICUMSA GS4/3/7-17 (30.0 °Brix = 1,125.94 kg/m³)
+  // Ajuste según la tabla oficial ICUMSA GS4/3/7-17
   double _getDensityInKgM3(double brix) {
     return 998.203 + (3.74913 * brix) + (0.016959 * pow(brix, 2));
   }
 
-  // Formato numérico con separador de miles para la densidad
   String _formatDensity(double density) {
     final List<String> parts = density.toStringAsFixed(2).split('.');
     final String integerPart = parts[0];
@@ -65,10 +63,9 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
       final double brix = double.parse(_brixController.text);
 
       final double calculatedDensityKgM3 = _getDensityInKgM3(brix);
-      final double densityGcm3 = calculatedDensityKgM3 / 1000.0;
 
-      // ICUMSA = (Absorbancia * 100,000,000) / (Celda * Brix * Densidad g/cm³)
-      final double color = (_factorICUMSA * absorbance) / (cellLength * brix * densityGcm3);
+      // ICUMSA = (Absorbancia * 100,000,000) / (Celda * Brix * Densidad en kg/m³)
+      final double color = (_factorICUMSA * absorbance) / (cellLength * brix * calculatedDensityKgM3);
 
       setState(() {
         _densityKgM3 = calculatedDensityKgM3;
@@ -226,3 +223,4 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
       ),
     );
   }
+}
