@@ -32,19 +32,21 @@ class IcumsaCalculator extends StatefulWidget {
 class _IcumsaCalculatorState extends State<IcumsaCalculator> {
   final _formKey = GlobalKey<FormState>();
   final _absorbanceController = TextEditingController();
-  final _cellLengthController = TextEditingController(text: '1.0');
+  final _cellLengthController = TextEditingController(text: '2'); // Valor predeterminado entero: 2
   final _brixController = TextEditingController();
 
-  final double _factorICUMSA = 100000000.0;
+  // Factor fijo prefijado en 1,000,000
+  final double _factorICUMSA = 1000000.0;
 
   double? _densityKgM3;
   double? _icumsaColor;
 
-  // Ajuste según la tabla oficial ICUMSA GS4/3/7-17
+  // Ajuste preciso a la tabla oficial ICUMSA (ej. 30.0 °Brix = 1,125.94 kg/m³)
   double _getDensityInKgM3(double brix) {
     return 998.203 + (3.74913 * brix) + (0.016959 * pow(brix, 2));
   }
 
+  // Formato numérico para densidad (ej. "1,125.94")
   String _formatDensity(double density) {
     final List<String> parts = density.toStringAsFixed(2).split('.');
     final String integerPart = parts[0];
@@ -63,9 +65,10 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
       final double brix = double.parse(_brixController.text);
 
       final double calculatedDensityKgM3 = _getDensityInKgM3(brix);
+      final double densityGcm3 = calculatedDensityKgM3 / 1000.0;
 
-      // ICUMSA = (Absorbancia * 100,000,000) / (Celda * Brix * Densidad en kg/m³)
-      final double color = (_factorICUMSA * absorbance) / (cellLength * brix * calculatedDensityKgM3);
+      // ICUMSA = (Absorbancia * 1,000,000) / (Celda * Brix * Densidad g/cm³)
+      final double color = (_factorICUMSA * absorbance) / (cellLength * brix * densityGcm3);
 
       setState(() {
         _densityKgM3 = calculatedDensityKgM3;
@@ -76,7 +79,7 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
 
   void _reset() {
     _absorbanceController.clear();
-    _cellLengthController.text = '2';
+    _cellLengthController.text = '2'; // Restablece a 2
     _brixController.clear();
     setState(() {
       _densityKgM3 = null;
@@ -126,7 +129,7 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _cellLengthController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: TextInputType.number, // Formato entero sin decimales
                         decoration: const InputDecoration(
                           labelText: 'Longitud de celda b (cm)',
                           border: OutlineInputBorder(),
@@ -134,8 +137,8 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) return 'Ingrese la longitud de celda';
-                          final val = double.tryParse(value);
-                          if (val == null || val <= 0) return 'Debe ser mayor a 0';
+                          final val = int.tryParse(value);
+                          if (val == null || val <= 0) return 'Debe ser un entero mayor a 0';
                           return null;
                         },
                       ),
