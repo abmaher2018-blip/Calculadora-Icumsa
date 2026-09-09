@@ -11,7 +11,7 @@ workflows:
           cp lib/main.dart /tmp/main.dart
           rm -rf *
           rm -rf .git
-          flutter create --template=app --project-name=Calculadora Icumsa --org=com.lab.icumsa .
+          flutter create --template=app --project-name=calculadora_icumsa --org=com.lab.icumsa .
           cp /tmp/main.dart lib/main.dart
       - name: Build APK
         script: |
