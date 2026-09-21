@@ -112,9 +112,15 @@ class MainMenuScreen extends StatelessWidget {
           _buildItemTile(
             context,
             title: 'Cenizas',
-            subtitle: 'Cenizas Conductimétricas',
+            subtitle: 'Cenizas Conductimétricas (Crudo, Blanco, Morena)',
             icon: Icons.grain_outlined,
-            onTap: () => _navigateToEmptyScreen(context, 'Cenizas'),
+            isCompleted: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AshMenuScreen()),
+              );
+            },
           ),
           _buildItemTile(
             context,
@@ -194,6 +200,255 @@ class MainMenuScreen extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => PlaceholderModuleScreen(moduleName: moduleName),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------
+// SUB-MENÚ: CENIZAS (PRODUCTO TERMINADO)
+// ---------------------------------------------------------
+class AshMenuScreen extends StatelessWidget {
+  const AshMenuScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Análisis de Cenizas',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF1B365D),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          const Text(
+            'Seleccione el tipo de azúcar:',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1B365D)),
+          ),
+          const SizedBox(height: 16),
+          _buildAshOption(
+            context,
+            title: 'Azúcar Crudo',
+            subtitle: '%Cenizas = (C1 - 0.9 × C2) × 0.0018',
+            type: AshType.crudo,
+          ),
+          _buildAshOption(
+            context,
+            title: 'Azúcar Blanco',
+            subtitle: '%Cenizas = (C1 - 0.35 × C2) × 0.0006',
+            type: AshType.blanco,
+          ),
+          _buildAshOption(
+            context,
+            title: 'Azúcar Morena',
+            subtitle: '%Cenizas = (C1 - 0.35 × C2) × 0.0006',
+            type: AshType.morena,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAshOption(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required AshType type,
+  }) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 12.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: const CircleAvatar(
+          backgroundColor: Color(0xFF1B365D),
+          child: Icon(Icons.flash_on, color: Colors.white, size: 20),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AshCalculatorScreen(type: type, title: title),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+enum AshType { crudo, blanco, morena }
+
+// ---------------------------------------------------------
+// PANTALLA: CÁLCULO DE CENIZAS CONDUCTIMÉTRICAS
+// ---------------------------------------------------------
+class AshCalculatorScreen extends StatefulWidget {
+  final AshType type;
+  final String title;
+
+  const AshCalculatorScreen({super.key, required this.type, required this.title});
+
+  @override
+  State<AshCalculatorScreen> createState() => _AshCalculatorScreenState();
+}
+
+class _AshCalculatorScreenState extends State<AshCalculatorScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _c1Controller = TextEditingController();
+  final _c2Controller = TextEditingController();
+
+  double? _ashPercentage;
+
+  void _calculate() {
+    if (_formKey.currentState!.validate()) {
+      final double c1 = double.parse(_c1Controller.text);
+      final double c2 = double.parse(_c2Controller.text);
+
+      double result = 0.0;
+
+      switch (widget.type) {
+        case AshType.crudo:
+          result = (c1 - 0.9 * c2) * 0.0018;
+          break;
+        case AshType.blanco:
+        case AshType.morena:
+          result = (c1 - 0.35 * c2) * 0.0006;
+          break;
+      }
+
+      setState(() {
+        _ashPercentage = result;
+      });
+    }
+  }
+
+  void _reset() {
+    _c1Controller.clear();
+    _c2Controller.clear();
+    setState(() {
+      _ashPercentage = null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Cenizas: ${widget.title}',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF1B365D),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _c1Controller,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Conductividad Solución de Azúcar (C1)',
+                          hintText: 'µS/cm',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.electric_meter),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Ingrese C1';
+                          if (double.tryParse(value) == null) return 'Valor numérico inválido';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _c2Controller,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Conductividad Agua Desmineralizada (C2)',
+                          hintText: 'µS/cm',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.water_drop),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Ingrese C2';
+                          if (double.tryParse(value) == null) return 'Valor numérico inválido';
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _calculate,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1B365D),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text('CALCULAR', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton.filledTonal(
+                    onPressed: _reset,
+                    icon: const Icon(Icons.refresh),
+                    tooltip: 'Limpiar',
+                  ),
+                ],
+              ),
+              if (_ashPercentage != null) ...[
+                const SizedBox(height: 25),
+                Card(
+                  color: const Color(0xFFE8EEF5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'PORCENTAJE DE CENIZAS',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1B365D)),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${_ashPercentage!.toStringAsFixed(4)} %',
+                          style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: Color(0xFF1B365D)),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text('% Cenizas Conductimétricas', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
