@@ -11,17 +11,242 @@ class IcumsaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Calculadora ICUMSA',
+      title: 'Laboratorio Azucarero',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1B365D)),
         useMaterial3: true,
       ),
-      home: const IcumsaCalculator(),
+      home: const MainMenuScreen(),
     );
   }
 }
 
+// ---------------------------------------------------------
+// PANTALLA PRINCIPAL: MENÚ DE TRES SECCIONES
+// ---------------------------------------------------------
+class MainMenuScreen extends StatelessWidget {
+  const MainMenuScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Análisis de Laboratorio',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF1B365D),
+        elevation: 2,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          // 1. SECCIÓN CAÑA
+          _buildSectionHeader('1. CAÑA'),
+          _buildItemTile(
+            context,
+            title: 'Análisis de Caña',
+            subtitle: 'Módulo de recepción y muestreo',
+            icon: Icons.grass,
+            onTap: () => _navigateToEmptyScreen(context, 'Análisis de Caña'),
+          ),
+
+          const SizedBox(height: 20),
+
+          // 2. SECCIÓN PROCESO
+          _buildSectionHeader('2. PROCESO'),
+          _buildItemTile(
+            context,
+            title: 'Bagazo',
+            subtitle: 'Humedad, Pol y Fibra',
+            icon: Icons.agriculture,
+            onTap: () => _navigateToEmptyScreen(context, 'Bagazo'),
+          ),
+          _buildItemTile(
+            context,
+            title: 'Cachaza',
+            subtitle: 'Humedad y Pol',
+            icon: Icons.cleaning_services_outlined,
+            onTap: () => _navigateToEmptyScreen(context, 'Cachaza'),
+          ),
+          _buildItemTile(
+            context,
+            title: 'Jugos',
+            subtitle: 'Jugo Diluido, Claro y Filtrado',
+            icon: Icons.local_drink_outlined,
+            onTap: () => _navigateToEmptyScreen(context, 'Jugos'),
+          ),
+          _buildItemTile(
+            context,
+            title: 'Masas',
+            subtitle: 'Masas Cocidas A, B y C',
+            icon: Icons.blur_on_outlined,
+            onTap: () => _navigateToEmptyScreen(context, 'Masas'),
+          ),
+          _buildItemTile(
+            context,
+            title: 'Mieles',
+            subtitle: 'Miel A, B y Miel Final',
+            icon: Icons.water_drop_outlined,
+            onTap: () => _navigateToEmptyScreen(context, 'Mieles'),
+          ),
+
+          const SizedBox(height: 20),
+
+          // 3. SECCIÓN PRODUCTO TERMINADO
+          _buildSectionHeader('3. PRODUCTO TERMINADO'),
+          _buildItemTile(
+            context,
+            title: 'Color',
+            subtitle: 'Cálculo de Color ICUMSA (UI) a 420 nm',
+            icon: Icons.palette_outlined,
+            isCompleted: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const IcumsaCalculator()),
+              );
+            },
+          ),
+          _buildItemTile(
+            context,
+            title: 'Cenizas',
+            subtitle: 'Cenizas Conductimétricas',
+            icon: Icons.grain_outlined,
+            onTap: () => _navigateToEmptyScreen(context, 'Cenizas'),
+          ),
+          _buildItemTile(
+            context,
+            title: 'Pol',
+            subtitle: 'Polarización (°Z) y Sacarosa',
+            icon: Icons.science_outlined,
+            onTap: () => _navigateToEmptyScreen(context, 'Pol'),
+          ),
+          _buildItemTile(
+            context,
+            title: 'Humedad',
+            subtitle: 'Pérdida por secado',
+            icon: Icons.thermostat_outlined,
+            onTap: () => _navigateToEmptyScreen(context, 'Humedad'),
+          ),
+          _buildItemTile(
+            context,
+            title: 'Dióxido de Azufre',
+            subtitle: 'Determinación de SO₂',
+            icon: Icons.bubble_chart_outlined,
+            onTap: () => _navigateToEmptyScreen(context, 'Dióxido de Azufre'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF1B365D),
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItemTile(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isCompleted = false,
+  }) {
+    return Card(
+      elevation: 1.5,
+      margin: const EdgeInsets.only(bottom: 8.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: isCompleted ? const Color(0xFF1B365D) : Colors.grey.shade200,
+          child: Icon(
+            icon,
+            color: isCompleted ? Colors.white : const Color(0xFF1B365D),
+            size: 20,
+          ),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  void _navigateToEmptyScreen(BuildContext context, String moduleName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PlaceholderModuleScreen(moduleName: moduleName),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------
+// PANTALLA SECUNDARIA GENÉRICA (VACÍA / EN DESARROLLO)
+// ---------------------------------------------------------
+class PlaceholderModuleScreen extends StatelessWidget {
+  final String moduleName;
+
+  const PlaceholderModuleScreen({super.key, required this.moduleName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          moduleName,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF1B365D),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.construction, size: 64, color: Colors.grey.shade400),
+              const SizedBox(height: 16),
+              Text(
+                'Módulo: $moduleName',
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Esta sección está lista para la integración de sus fórmulas y parámetros de laboratorio.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------
+// PANTALLA: CÁLCULO DE COLOR ICUMSA (PRODUCTO TERMINADO)
+// ---------------------------------------------------------
 class IcumsaCalculator extends StatefulWidget {
   const IcumsaCalculator({super.key});
 
@@ -35,7 +260,6 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
   final _cellLengthController = TextEditingController(text: '2');
   final _brixController = TextEditingController();
 
-  // Factor fijado en 100,000 para obtener el resultado en escala 370.06
   final double _factorICUMSA = 100000.0;
 
   double? _densityKgM3;
@@ -65,7 +289,6 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
       final double calculatedDensityKgM3 = _getDensityInKgM3(brix);
       final double densityGcm3 = calculatedDensityKgM3 / 1000.0;
 
-      // ICUMSA = (Absorbancia * 100,000) / (Celda * Brix * Densidad g/cm³)
       final double color = (_factorICUMSA * absorbance) / (cellLength * brix * densityGcm3);
 
       setState(() {
@@ -94,6 +317,7 @@ class _IcumsaCalculatorState extends State<IcumsaCalculator> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFF1B365D),
+        iconTheme: const IconThemeData(color: Colors.white),
         elevation: 2,
       ),
       body: SingleChildScrollView(
